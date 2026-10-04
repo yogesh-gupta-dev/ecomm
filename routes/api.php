@@ -10,8 +10,13 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'Test route is working!']);
     });
 
+    // Manual auth
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+
+    // Google OAuth
+    Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect']);
+    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);

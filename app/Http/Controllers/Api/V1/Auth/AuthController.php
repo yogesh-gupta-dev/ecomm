@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -76,6 +78,42 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout successful',
+        ]);
+    }
+
+    public function googleRedirect()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    public function googleCallback()
+    {
+        $googleUser = Socialite::driver('google')->stateless()
+            ->user();
+
+        $user = User::where('email', $googleUser->getEmail())->first();
+
+        if (! $user) {
+
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'password' => Hash::make(Str::random(32)),
+            ]);
+        }
+
+        $token = $user->createToken(
+            'google-login',
+            [
+                'orders:read',
+                'orders:create',
+            ]
+        )->plainTextToken;
+
+        return response()->json([
+            'message' => 'Google login successful',
+            'user' => $user,
+            'token' => $token,
         ]);
     }
 }
